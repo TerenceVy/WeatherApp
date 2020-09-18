@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/barre_de_navigation"
+    app:startDestination="@id/currentWeather">
+    <fragment
+        android:id="@+id/currentWeather"
+        android:name="com.example.basicweatherapp.CurrentWeather"
+        android:label="Météo courante"
+        tools:layout="@layout/fragment_current_weather" />
+    <fragment
+        android:id="@+id/search"
+        android:name="com.example.basicweatherapp.Search"
+        android:label="Recherche"
+        tools:layout="@layout/fragment_search" />
+    <fragment
+        android:id="@+id/fiveDays"
+        android:name="com.example.basicweatherapp.FiveDays"
+        android:label="Choisir une ville"
+        tools:layout="@layout/fragment_five_days" />
+</navigation>
