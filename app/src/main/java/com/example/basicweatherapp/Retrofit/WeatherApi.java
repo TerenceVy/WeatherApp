@@ -14,8 +14,7 @@ public interface WeatherApi {
 
     @Headers({
             "x-rapidapi-host: community-open-weather-map.p.rapidapi.com",
-            //"x-rapidapi-key: 73d25cc568mshabcdcf3b79ab355p17e08ajsn7c74fb28b9d0"
-            "x-rapidapi-key: 487ba7bf52msh3ab44db1157ec0ep1cf508jsn7c8fd2dfcadc"
+            //"x-rapidapi-key: YOUR API KEY"
     })
 
     @GET("weather")
@@ -26,8 +25,7 @@ public interface WeatherApi {
 
     @Headers({
             "x-rapidapi-host: community-open-weather-map.p.rapidapi.com",
-            //"x-rapidapi-key: 73d25cc568mshabcdcf3b79ab355p17e08ajsn7c74fb28b9d0"
-            "x-rapidapi-key: 487ba7bf52msh3ab44db1157ec0ep1cf508jsn7c8fd2dfcadc"
+            //"x-rapidapi-key: YOUR API KEY"
     })
     @GET("forecast")
     Call<JsonObject> getForecastWeather(
