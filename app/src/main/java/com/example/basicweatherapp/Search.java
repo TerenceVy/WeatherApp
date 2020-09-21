@@ -1,32 +1,23 @@
 package com.example.basicweatherapp;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.basicweatherapp.Retrofit.WeatherApi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-
-import org.w3c.dom.Text;
-
-import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -77,7 +68,8 @@ public class Search extends Fragment implements OnClickListener {
     @Override
     public void onClick(View view) {
         errorText.setVisibility(View.INVISIBLE);
-        cityName = this.editText.getText().toString();
+        cityName = this.editText.getText().toString().toLowerCase();
+        cityName = cityName.substring(0, 1).toUpperCase() + cityName.substring(1);
         if (!cityName.matches("")) {
             WeatherApi.getCurrentWeather("metric", cityName).enqueue(new Callback<JsonObject>() {
 
@@ -89,7 +81,7 @@ public class Search extends Fragment implements OnClickListener {
                         errorText.setVisibility(View.VISIBLE);
                     }
                     else {
-                        viewModel.setText(editText.getText());
+                        viewModel.setText(editText.getText().toString().toLowerCase());
                         errorText.setText("La météo pour " + cityName + " est maintenant affichée dans (Météo)");
                         errorText.setTextColor(Color.parseColor("#3E971E"));
                         errorText.setVisibility(View.VISIBLE);

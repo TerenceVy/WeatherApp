@@ -2,18 +2,24 @@ package com.example.basicweatherapp;
 import com.example.basicweatherapp.Retrofit.ApiClient;
 import com.example.basicweatherapp.Retrofit.WeatherApi;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.view.View.OnClickListener;
+
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,6 +27,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.text.DecimalFormat;
+import java.util.Map;
 import java.util.Objects;
 
 import retrofit2.Call;
@@ -29,17 +36,20 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import static android.content.ContentValues.TAG;
+import static android.content.Context.MODE_PRIVATE;
+import static android.content.Context.MODE_APPEND;
 
 
-public class CurrentWeather extends Fragment {
+public class CurrentWeather extends Fragment implements OnClickListener {
     private SharedViewModel viewModel;
 
     private static DecimalFormat decimal = new DecimalFormat("0.00");
     private TextView text;
     public String cityName = "Paris";
     public CharSequence city;
-
+    SharedPreferences pref;
     private static WeatherApi WeatherApi;
+    private Context mContext;
 
     public CurrentWeather() {
         // Required empty public constructor
@@ -55,8 +65,11 @@ public class CurrentWeather extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_current_weather, container, false);
+        ImageButton button = view.findViewById(R.id.button_add_city);
+        button.setOnClickListener(this);
+
         viewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
         city = viewModel.getText().getValue();
         if (!(city == null)) {
@@ -65,9 +78,43 @@ public class CurrentWeather extends Fragment {
         this.getCurrentWeather(container, cityName);
         this.getForecastWeather(container, cityName);
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_current_weather, container, false);
+        return view;
     }
 
+
+    @Override
+    public void onClick(View view) {
+        city = viewModel.getText().getValue();
+        if (!(city == null))
+            cityName = city.toString();
+
+        SharedPreferences sharedPreferences = view.getContext().getSharedPreferences("MySharedPref", MODE_PRIVATE);
+
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+
+        myEdit.putString(cityName, cityName);
+
+        myEdit.commit(); // Les informations sont envoyées dans le shared preferences.
+
+
+        /* ==================================================== Afficher un message comme quoi la ville a été enregistré ====================================================*/
+
+
+        /* FUNCTION TO DELETE ONE CITY FROM SHARED PREFERENCES BY NAME (Key)
+
+         SharedPreferences sharedPreferences = view.getContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+         sharedPreferences.edit().remove("LeNomDeLaVille = LA KEY").commit();
+
+
+
+         FUNCTION TO DELETE ALL CITY IN SHARED PREFERENCES
+
+         SharedPreferences sharedPreferences = view.getContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
+         sharedPreferences.edit().clear().commit();
+
+        */
+
+    }
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -106,7 +153,7 @@ public class CurrentWeather extends Fragment {
 
                     text = container.findViewById(R.id.text_temp); //Temperature
                     fahrenheit = ((Main.get("temp").getAsDouble()) * 1.8 + 32);
-                    json_text = "Actuelle : " + Main.get("temp").getAsString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
+                    json_text = Main.get("temp").getAsString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
                     text.setText(json_text);
 
                     text = container.findViewById(R.id.text_ville); //Ville
@@ -115,12 +162,12 @@ public class CurrentWeather extends Fragment {
 
                     text = container.findViewById(R.id.text_temp_min); //Temperature min
                     fahrenheit = ((Main.get("temp_min").getAsDouble()) * 1.8 + 32);
-                    json_text = "Minimale : " + Main.get("temp_min").getAsString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
+                    json_text = "Min " + Main.get("temp_min").getAsString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
                     text.setText(json_text);
 
                     text = container.findViewById(R.id.text_temp_max); //Temperature max
                     fahrenheit = ((Main.get("temp_max").getAsDouble()) * 1.8 + 32);
-                    json_text = "Maximale : " + Main.get("temp_max").getAsString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
+                    json_text = "Max " + Main.get("temp_max").getAsString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
                     text.setText(json_text);
 
                     text = container.findViewById(R.id.text_humidite); //Humidite

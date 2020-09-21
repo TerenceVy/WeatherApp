@@ -16,7 +16,7 @@
         tools:layout="@layout/fragment_search" />
     <fragment
         android:id="@+id/fiveDays"
-        android:name="com.example.basicweatherapp.FiveDays"
+        android:name="com.example.basicweatherapp.CitiesList"
         android:label="Choisir une ville"
-        tools:layout="@layout/fragment_five_days" />
+        tools:layout="@layout/fragment_cities_list" />
 </navigation>
