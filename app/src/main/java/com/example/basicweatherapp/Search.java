@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -69,22 +70,24 @@ public class Search extends Fragment implements OnClickListener {
     public void onClick(View view) {
         errorText.setVisibility(View.INVISIBLE);
         cityName = this.editText.getText().toString().toLowerCase();
-        cityName = cityName.substring(0, 1).toUpperCase() + cityName.substring(1);
         if (!cityName.matches("")) {
+            cityName = cityName.substring(0, 1).toUpperCase() + cityName.substring(1);
             WeatherApi.getCurrentWeather("metric", cityName).enqueue(new Callback<JsonObject>() {
 
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                     if (response.code() != 200) {
                         errorText.setText("(" + cityName + ") n'existe pas ");
+                        Toast.makeText(getActivity(), "(" + cityName + ") n'existe pas ", Toast.LENGTH_LONG).show();
                         errorText.setTextColor(Color.parseColor("#CD1C1C"));
                         errorText.setVisibility(View.VISIBLE);
                     }
                     else {
                         viewModel.setText(editText.getText().toString().toLowerCase());
                         errorText.setText("La météo pour " + cityName + " est maintenant affichée dans (Météo)");
+                        Toast.makeText(getActivity(), "La météo pour " + cityName + " est maintenant affichée dans (Météo)", Toast.LENGTH_LONG).show();
                         errorText.setTextColor(Color.parseColor("#3E971E"));
-                        errorText.setVisibility(View.VISIBLE);
+                        //errorText.setVisibility(View.VISIBLE);
                     }
                 }
 
@@ -96,6 +99,7 @@ public class Search extends Fragment implements OnClickListener {
         }
         else {
             errorText.setText("La barre de recherche est vide");
+            Toast.makeText(getActivity(), "La barre de recherche est vide", Toast.LENGTH_LONG).show();
             errorText.setTextColor(Color.parseColor("#CD1C1C"));
             errorText.setVisibility(View.VISIBLE);
         }

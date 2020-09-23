@@ -1,17 +1,13 @@
 package com.example.basicweatherapp;
+
 import com.example.basicweatherapp.Retrofit.ApiClient;
 import com.example.basicweatherapp.Retrofit.WeatherApi;
-
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,22 +15,32 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.view.View.OnClickListener;
+import android.widget.Toast;
 
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.util.Map;
-import java.util.Objects;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
 import static android.content.ContentValues.TAG;
 import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.MODE_APPEND;
@@ -47,9 +53,7 @@ public class CurrentWeather extends Fragment implements OnClickListener {
     private TextView text;
     public String cityName = "Paris";
     public CharSequence city;
-    SharedPreferences pref;
     private static WeatherApi WeatherApi;
-    private Context mContext;
 
     public CurrentWeather() {
         // Required empty public constructor
@@ -85,8 +89,10 @@ public class CurrentWeather extends Fragment implements OnClickListener {
     @Override
     public void onClick(View view) {
         city = viewModel.getText().getValue();
-        if (!(city == null))
+        if (!(city == null)) {
             cityName = city.toString();
+            cityName = cityName.substring(0, 1).toUpperCase() + cityName.substring(1);
+        }
 
         SharedPreferences sharedPreferences = view.getContext().getSharedPreferences("MySharedPref", MODE_PRIVATE);
 
@@ -96,25 +102,9 @@ public class CurrentWeather extends Fragment implements OnClickListener {
 
         myEdit.commit(); // Les informations sont envoyées dans le shared preferences.
 
-
-        /* ==================================================== Afficher un message comme quoi la ville a été enregistré ====================================================*/
-
-
-        /* FUNCTION TO DELETE ONE CITY FROM SHARED PREFERENCES BY NAME (Key)
-
-         SharedPreferences sharedPreferences = view.getContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
-         sharedPreferences.edit().remove("LeNomDeLaVille = LA KEY").commit();
-
-
-
-         FUNCTION TO DELETE ALL CITY IN SHARED PREFERENCES
-
-         SharedPreferences sharedPreferences = view.getContext().getSharedPreferences("MySharedPref", Context.MODE_PRIVATE);
-         sharedPreferences.edit().clear().commit();
-
-        */
-
+        Toast.makeText(getActivity(), cityName + " ajouté aux favoris", Toast.LENGTH_LONG).show();
     }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -123,7 +113,7 @@ public class CurrentWeather extends Fragment implements OnClickListener {
     /**
      * Retrofit's configuration
      */
-    private void configureRetrofit(){
+    private void configureRetrofit() {
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
@@ -140,10 +130,10 @@ public class CurrentWeather extends Fragment implements OnClickListener {
      * Sends GET request, Get Current Weather
      * Also set views with the data
      */
-    private void  getCurrentWeather(final ViewGroup container, String city){
+    private void getCurrentWeather(final ViewGroup container, String city) {
         //WeatherApi weatherApi= ApiClient.getClient().create(WeatherApi.class);
-        WeatherApi.getCurrentWeather("metric",city).enqueue(new Callback<JsonObject>() {
-            public void onResponse(Call<JsonObject> call, Response <JsonObject> response) {
+        WeatherApi.getCurrentWeather("metric", city).enqueue(new Callback<JsonObject>() {
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.code() == 200) {
                     JsonObject Main = response.body().get("main").getAsJsonObject();
                     JsonObject Wind = response.body().get("wind").getAsJsonObject();
@@ -152,6 +142,7 @@ public class CurrentWeather extends Fragment implements OnClickListener {
                     double fahrenheit;
 
                     text = container.findViewById(R.id.text_temp); //Temperature
+
                     fahrenheit = ((Main.get("temp").getAsDouble()) * 1.8 + 32);
                     json_text = Main.get("temp").getAsString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
                     text.setText(json_text);
@@ -188,41 +179,37 @@ public class CurrentWeather extends Fragment implements OnClickListener {
                 }
             }
 
-            public void onFailure(Call<JsonObject> call, Throwable t){
-               Log.e(TAG, "onFailure: " + t.getMessage());
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                Log.e(TAG, "onFailure: " + t.getMessage());
             }
         });
     }
 
 
-    private void  getForecastWeather(final ViewGroup container, String city) {
+    private void getForecastWeather(final ViewGroup container, String city) {
 
-        WeatherApi.getForecastWeather("metric", city).enqueue(new Callback<JsonObject>() {
+        WeatherApi.getForecastWeather("metric", city,"7").enqueue(new Callback<JsonObject>() {
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.code() == 200) {
                     JsonArray Body = response.body().get("list").getAsJsonArray();
-                    JsonObject Main;
                     JsonObject listElements;
-                    String listDateTime;
+                    JsonObject Day;
                     String json_text;
-                    String Hour;
+                    JsonElement dt;
                     double fahrenheit;
                     int compteur = 1;
 
-                    for (int i = 0; i < 40; i++) { //Boucle pour faire le tour des 40 elements de la liste retournee par la requete
+                    for(int i = 1; i < 7; i++) {
                         listElements = Body.get(i).getAsJsonObject();
-                        listDateTime = listElements.get("dt_txt").getAsString();
-                        Main = listElements.get("main").getAsJsonObject();
-                        Hour = listDateTime.substring(11,13);
-
-                        if (Hour.equals("12")){
-                            text = container.findViewById(R.id.text_temp+compteur);
-                            fahrenheit = ((Main.get("temp").getAsDouble()) * 1.8 + 32);
-                            json_text = Main.get("temp").toString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
-                            text.setText(json_text);
-                            compteur++;
-                        }
+                        Day = listElements.get("temp").getAsJsonObject();
+                        //dt = listElements.get("dt");
+                        text = container.findViewById(R.id.text_temp + compteur);
+                        fahrenheit = ((Day.get("day").getAsDouble()) * 1.8 + 32);
+                        json_text = Day.get("day").toString() + " °C / " + String.valueOf(decimal.format(fahrenheit)) + " °F";
+                        text.setText(json_text);
+                        compteur++;
                     }
+
                 }
             }
 
